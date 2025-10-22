@@ -1,0 +1,7 @@
+# Requirements for the alternative screen sharing solution
+mss>=6.1.0
+opencv-python>=4.5.0
+numpy>=1.21.0
+
+# Original vidstream (experimental, may have issues)
+vidstream>=0.0.14

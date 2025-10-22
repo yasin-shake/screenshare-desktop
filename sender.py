@@ -5,6 +5,7 @@ import threading
 from vidstream import ScreenShareClient
 import argparse
 import time
+import sys
 
 def main():
     parser = argparse.ArgumentParser(description="Screen stream sender")
@@ -17,12 +18,22 @@ def main():
     args = parser.parse_args()
 
     # Note: ScreenShareClient in vidstream accepts (host, port, resolution=(w,h), fps=?)
-    client = ScreenShareClient(
-        args.receiver_ip,
-        args.port,
-        (args.width, args.height),
-        args.fps
-    )
+    # Ensure resolution values are integers to avoid OpenCV type errors
+    try:
+        client = ScreenShareClient(
+            args.receiver_ip,
+            args.port,
+            (int(args.width), int(args.height)),
+            int(args.fps)
+        )
+    except Exception as e:
+        print(f"[Sender] Error creating client: {e}")
+        print("[Sender] Trying with default resolution...")
+        # Try with default resolution if custom resolution fails
+        client = ScreenShareClient(
+            args.receiver_ip,
+            args.port
+        )
 
     t = threading.Thread(target=client.start_stream, daemon=True)
     t.start()
@@ -32,11 +43,19 @@ def main():
     print("Press Enter to stop...")
     try:
         input()
+    except KeyboardInterrupt:
+        print("\n[Sender] Interrupted by user.")
+    except Exception as e:
+        print(f"[Sender] Error: {e}")
     finally:
-        client.stop_stream()
-        # give the background thread a moment to exit cleanly
-        time.sleep(0.5)
-        print("[Sender] Stopped.")
+        try:
+            client.stop_stream()
+            # give the background thread a moment to exit cleanly
+            time.sleep(0.5)
+            print("[Sender] Stopped.")
+        except Exception as e:
+            print(f"[Sender] Error stopping stream: {e}")
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()
