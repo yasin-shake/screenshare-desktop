@@ -56,9 +56,17 @@ class ScreenShareReceiver:
                                 img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
                                 
                                 if img is not None:
-                                    # Display image
+                                    # Display image in fullscreen
+                                    cv2.namedWindow('Screen Share', cv2.WINDOW_NORMAL)
+                                    cv2.setWindowProperty('Screen Share', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
                                     cv2.imshow('Screen Share', img)
-                                    cv2.waitKey(1)
+                                    
+                                    # Check for exit key (ESC or 'q')
+                                    key = cv2.waitKey(1) & 0xFF
+                                    if key == 27 or key == ord('q'):  # ESC or 'q'
+                                        print("[Receiver] Exit key pressed, stopping...")
+                                        self.running = False
+                                        break
                                     
                 except Exception as e:
                     if self.running:
@@ -93,7 +101,7 @@ def main():
     receiver.running = True
     receive_thread.start()
 
-    print("Press Enter to stop...")
+    print("Press Enter to stop, or ESC/'q' in the video window to exit...")
     try:
         input()
     except KeyboardInterrupt:
